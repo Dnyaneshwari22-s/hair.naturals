@@ -1,0 +1,29 @@
+(async function () {
+  window.appointlyAppEmbedLoaded=true;
+ let addScriptTag=async ()=>{
+   if(window.appointlyClient){
+     return
+   }
+   if(!window.appointlyMainJsUrl){await new Promise(res => {setTimeout(() => {res()}, 100)})}
+   if(!window.appointlyMainJsUrl){
+     window.appointlyMainJsUrl=`https://s1.staq-cdn.com/appointly/api/js/main.js?sId=${encodeURIComponent(Shopify.shop)}&v=${new Date().valueOf()}&cfs=skip`;
+   }
+   let mainJsScriptTag = document.createElement('script');
+   mainJsScriptTag.src = window.appointlyMainJsUrl;
+   mainJsScriptTag.async = true;
+   document.getElementsByTagName('head')[0].appendChild(mainJsScriptTag);
+ }
+ await addScriptTag();
+ setTimeout(async ()=>{
+   let isActive=false;
+   try {
+     isActive = window.appointlyClient || (await (await fetch(`https://s1.staq-cdn.com/api/status`)).json()).isActive
+   } catch (e) {
+     console.error("Error in getting script from cdn", e)
+   }
+   if(!isActive){
+     window.appointlyMainJsUrl=  window.appointlyMainJsUrl.replace('https://s1.staq-cdn.com','https://js-server.staqlab.com')
+     await addScriptTag();
+   }
+ },1000);
+})()
